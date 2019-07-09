@@ -40,6 +40,12 @@ class AppModule {
         })
         return Response.json(ctx, body);
     }
+    async checkUser(ctx) {
+        return Response.success(ctx, ctx.request.body);
+    }
+    async logoutUser(ctx) {
+        return Response.success(ctx);
+    }
 }
 
 module.exports = new AppModule();

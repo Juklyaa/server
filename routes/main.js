@@ -1,6 +1,7 @@
 const Router = require("koa2-router");
 const Response = require("core/Response");
 const database = require("core/config");
+const users = require("core/configUsers");
 
 const AppModule = require("core/modules/AppModule");
 
@@ -27,6 +28,19 @@ const checkIsId = (ctx, next) => {
 
     next();
 }
+const checkLogIn = (ctx, next) => {
+    const name = ctx.request.body.name;
+    const password = ctx.request.body.password;
+    const current = users.find(user => {
+        return user.name === name && user.password === password
+    });
+    
+    console.log(current);
+    if(!current) {
+        return Response.error(ctx, "user not find", 404)
+    }
+    next();
+}
 router.get("/ideas", ctx => {
     return AppModule.getIdea(ctx);
 });
@@ -44,8 +58,11 @@ router.get("/ideas/:id", checkIsId, ctx => {
     return AppModule.putIdea(ctx);
 });
 
-router.get("/user", ctx => {
-    return AppModule.getIdea(ctx);
+router.post("/login", checkLogIn, ctx => {
+    return AppModule.checkUser(ctx);
+});
+router.get("/logout", ctx => {
+    return AppModule.logoutUser(ctx);
 });
 
 
