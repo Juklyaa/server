@@ -1,35 +1,52 @@
 const Router = require("koa2-router");
-const Response = require("core/Response");
-const AppModule = require("core/modules/AppModule");
+const Ideas = require('models/ideas');
+const Users = require('models/users');
+const { Op } = require('sequelize');
 
 const router = new Router();
 
 router.get('/ideas', async ctx => {
-    const result = await ctx.db.query(`SELECT title, description, private, id_idea id, users.name author
-    from ideas 
-    INNER JOIN users ON users.id=ideas.user_id `);
-    ctx.body = result.rows;
+    const ideas = await Ideas.findAll({
+        include: [{
+            model: Users,
+            attributes: ['name']
+        }],
+    });
+    ctx.body = ideas;
 })
+
+
 router.get('/ideas/:id', async ctx => {
     const id = Number(ctx.request.params.id);
-    const result = await ctx.db.query(`select * from ideas where id =$1`,[id]);
-    ctx.body = result.rows[0];
+    const result = await Ideas.findAll({       
+        where: {
+            id_idea: {
+                [Op.eq]: id,
+            } 
+        },
+        include: [{
+            model: Users,
+            attributes: ['name']
+        }],
+    })
+    ctx.body = result;
 })
 router.delete("/ideas/:id", async ctx => {
-    const id = ctx.request.params.id;
-    await ctx.db.query(`delete from ideas where id_idea =$1`,[id]);
+    const id = Number(ctx.request.params.id);
+    await Ideas.destroy({       
+        where: {
+            id_idea: {
+                [Op.eq]: id,
+            } 
+        },
+    })
     ctx.body = [];
 });
 router.post("/singleIdea", async ctx => {
-    const { title, description, author, private} = ctx.request.body;
-    const user = await ctx.db.query(`select * from users where name=$1`, [author]);
-    const user_id = user.rows[0].id;
-    const result = await ctx.db.query(`insert into ideas (title, description, private, user_id) values ($1, $2, $3, $4) RETURNING *`, [title, description, private, user_id]);  
-    const answer = {
-       title, description, author, id: result.rows[0].id_idea
-    };
+    const { title, description} = ctx.request.body;
+    const newIdea = await Ideas.create({title, description});
     
-    ctx.body = answer;
+    ctx.body = newIdea
 });
 
 router.put("/ideas/:id", async ctx => {

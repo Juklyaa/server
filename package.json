@@ -15,7 +15,8 @@
     "koa-bodyparser": "^4.2.1",
     "koa2-cors": "^2.0.6",
     "koa2-router": "^1.1.2",
-    "pg": "^7.11.0"
+    "pg": "^7.11.0",
+    "sequelize": "^5.10.0"
   },
   "devDependencies": {
     "nodemon": "^1.19.1"
