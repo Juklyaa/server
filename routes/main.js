@@ -24,7 +24,7 @@ router.post("/singleIdea", async ctx => {
     const { title, description, author, private} = ctx.request.body;
     const user = await ctx.db.query(`select * from users where name=$1`, [author]);
     const user_id = user.rows[0].id;
-    const result = await ctx.db.query('insert into ideas (title, description, private, user_id) values ($1, $2, $3, $4) RETURNING *', [title, description, private, user_id]);  
+    const result = await ctx.db.query(`insert into ideas (title, description, private, user_id) values ($1, $2, $3, $4) RETURNING *`, [title, description, private, user_id]);  
     const answer = {
        title, description, author, id: result.rows[0].id_idea
     };
@@ -34,15 +34,20 @@ router.post("/singleIdea", async ctx => {
 
 router.put("/ideas/:id", async ctx => {
     const { title, description, author, private} = ctx.request.body;
-    const body = ctx.request.body;
-      const id = +ctx.params.id;
-      database = database.map(item =>{
-          if(item.id===id){
-              return body;
-          }
-          return item;
-      })
-      return Response.json(ctx, body);
+    
+    const user = await ctx.db.query(`select * from users where name=$1`, [author]);
+    const user_id = user.rows[0].id;
+    const id = Number(ctx.request.params.id);
+    
+    const result = await ctx.db.query(`update ideas SET title=$1, description=$2, private=$3 where id_idea=$4 RETURNING *`, [title, description, private, id]);
+    ctx.body = { 
+        title,
+        author,
+        description,
+        private,
+        id
+    }
+
 });
 
 const checkAuth = (ctx, next) => {
