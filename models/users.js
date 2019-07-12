@@ -27,9 +27,6 @@ const users = sequelize.define('users', {
     type: Sequelize.STRING,
     }
   },
-  private:{
-    type: Sequelize.BOOLEAN,
-  }
   
 },{timestamps: false,  underscored: true});
 

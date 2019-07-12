@@ -1,51 +1,58 @@
-const Response = require("core/Response");
-let database = require("core/config");
+
+const Ideas = require('../../models/ideas');
+const Users = require('../../models/users');
+const { Op } = require('sequelize');
+
 
 class AppModule {
-    async ping(ctx) {
-        return Response.text(ctx, "pong");
+    async getIdeas () {
+        const ideas = await Ideas.findAll({
+            include: [{
+                model: Users,
+                attributes: ['name']
+            }],
+        });
+        return ideas;
+    }
+    async getIdeaId (id){
+        const result = await Ideas.findOne({       
+            where: { id },
+            include: [{
+                model: Users,
+                attributes: ['name']
+            }],
+        })
+        return result;
+    }
+    async deleteIdeaId (id, user_id){
+        const result =  await Ideas.destroy({       
+            where: {
+                id: {
+                    [Op.eq]: id,
+                }, 
+                user_id:{
+                    [Op.eq]:user_id
+                }
+            },
+        })
+        return result;
+    }
+    async postIdea(title, description, userId){
+        const newIdea = await Ideas.create({title, description, userId});
+        return newIdea;
+    }
+    async putIdeaId(title, description, id, userId){
+        const newIdea = await Ideas.update({title, description, userId}, {where: {id}});
+        return newIdea;
+    }
+    async checkIsId(id){
+
+        const result = await Ideas.findOne({       
+            where: { id },
+        })
+        return result;
     }
 
-    async getIdea(ctx) {
-        return Response.json(ctx, database);
-    }
-    async getIdeaId(ctx) {
-        const id = +ctx.params.id;
-        return Response.json(ctx, database.find((item)=>{
-            return item.id===id;
-        }));
-    }
-    async deleteId(ctx) {
-        const id = +ctx.params.id;
-        database = database.filter(item =>{
-            return!(item.id===id)
-        })
-        
-        return Response.json(ctx, {id});
-
-    }
-    async postIdea(ctx) {
-        const body = ctx.request.body;
-        database.push(body);
-        return Response.json(ctx, database);      
-    }
-    async putIdea(ctx) {
-        const body = ctx.request.body;
-        const id = +ctx.params.id;
-        database = database.map(item =>{
-            if(item.id===id){
-                return body;
-            }
-            return item;
-        })
-        return Response.json(ctx, body);
-    }
-    async checkUser(ctx) {
-        return Response.success(ctx, ctx.request.body);
-    }
-    async logoutUser(ctx) {
-        return Response.success(ctx);
-    }
 }
 
 module.exports = new AppModule();
